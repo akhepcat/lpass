@@ -125,7 +125,7 @@ decrypt() {
 edit() {
     decrypt && \
         A1=$(stat  --format="%Y" ${PASSFILE}) && \
-	joe ${PASSFILE} && \
+	${EDITOR} ${PASSFILE} && \
 	A2=$(stat  --format="%Y" ${PASSFILE}) && \
 	if [ ${A1} -eq ${A2} ];
 	then
