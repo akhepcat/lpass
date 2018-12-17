@@ -83,7 +83,7 @@ pull() {
 	if [ ${REMOTE:-0} -eq 1 ];
 	then
 		NOW=$(date "+%s")
-		AGE=$(stat  --format="%Y" ${PDIR}/.git/FETCH_HEAD)
+		AGE=$(cd ${PDIR}/.git && stat  --format="%Y" FETCH_HEAD)
 		if [ ${FORCE:-1} -eq 1 -o $((AGE + 3600)) -lt ${NOW} ]	# 1 hour cache
 		then
 			# echo "sync with remote:"
@@ -99,7 +99,7 @@ push() {
 	DIFFER=$(git show 2>&1 | grep differ | wc -l)
 	if [ ${DIFFER:-1} -gt 0 -o ${FORCE:-0} -eq 1 ]
 	then
-		git commit -a -m "lpass update for $(date '+%YmdHS')"
+		git commit -a -m "lpass update for $(date '+%Y%m%d%H%S')"
 
 		# always check
 		is_remote
@@ -132,7 +132,7 @@ edit() {
 		rm -f ${PASSFILE}
 	else
 		crypt && \
-		push
+		FORCE=1 push
 	fi
 
 	exit 0
