@@ -2,6 +2,7 @@
 PROG="${0##*/}"
 CWD=$(pwd -P)
 FORCE=0
+NOREMOTE=0
 
 # Make sure
 test -z "${BASH_SOURCE}" && exec bash "$0" "$1" "$2" "$3" "$4" "$5"
@@ -28,6 +29,7 @@ usage() {
 	echo -e "usage:\n\$ ${PROG} (options) {search-string}"
 	echo -e "\t-c, --clear-authcache\t Clears the gpg auth-cache"
 	echo -e "\t-f, --force-sync \t Force an update with the remote"
+	echo -e "\t-n, --nosync \t don't update with the remote"
 	echo -e "\t-e, --edit\t\t Edit the local auth store"
 	echo -e "\t-h, --help\t\t this help.\n"
 	exit 1
@@ -72,6 +74,7 @@ is_remote() {
 		# remote.origin.url is undefined, assume local
 		REMOTE=0
 	fi
+	[[ NOREMOTE -eq 1 ]] && REMOTE=0
 }
 
 pull() {
@@ -99,7 +102,7 @@ push() {
 	DIFFER=$(git show 2>&1 | grep differ | wc -l)
 	if [ ${DIFFER:-1} -gt 0 -o ${FORCE:-0} -eq 1 ]
 	then
-		git commit -a -m "lpass update for $(date '+%Y%m%d%H%S')"
+		git commit -a -m "${PROG} update for $(date '+%Y%m%d%H%S')"
 
 		# always check
 		is_remote
@@ -147,7 +150,7 @@ crypt() {
 	return $?
 }
 
-optspec=":fceh-"
+optspec=":fcenh-"
 while getopts "$optspec" optchar; do
     case "${optchar}" in
         -)
@@ -163,6 +166,11 @@ while getopts "$optspec" optchar; do
                     ;;
                 force-sync)
                     FORCE=1
+	            NOREMOTE=0
+                    ;;
+                nosync)
+                    FORCE=0
+	            NOREMOTE=1
                     ;;
                 *)
                     if [ "$OPTERR" = 1 ] && [ "${optspec:0:1}" != ":" ]; then
@@ -181,6 +189,11 @@ while getopts "$optspec" optchar; do
             ;;
         f)
             FORCE=1
+            NOREMOTE=0
+            ;;
+        n)
+            FORCE=0
+            NOREMOTE=1
             ;;
         *)
             if [ "$OPTERR" != 1 ] || [ "${optspec:0:1}" = ":" ]; then
